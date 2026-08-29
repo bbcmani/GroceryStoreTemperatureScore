@@ -2,6 +2,7 @@
 # Grocery Store Temperature Withstanding Score Dashboard
 
 YouTube url : https://www.youtube.com/watch?v=Nt143iqLzfY
+Live Demo url: https://allinonepage.free.nf/allinonepage/php/common/entertain/Nexushost/public_html/view.php?id=54
 
 A pure HTML / CSS / vanilla JavaScript prototype that measures a **Store Temperature
 Withstanding Score** — an estimate of how many days a product can stay in good condition
