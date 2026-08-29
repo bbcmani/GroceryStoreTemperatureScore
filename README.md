@@ -1,6 +1,8 @@
 # GroceryStoreTemperatureScore
 # Grocery Store Temperature Withstanding Score Dashboard
 
+YouTube url : https://www.youtube.com/watch?v=Nt143iqLzfY
+
 A pure HTML / CSS / vanilla JavaScript prototype that measures a **Store Temperature
 Withstanding Score** — an estimate of how many days a product can stay in good condition
 at a specific shelf position, based on its own temperature tolerance, the temperature of
