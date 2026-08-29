@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Store Temperature Withstanding Score Dashboard</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.140.0/build/three.min.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+    <h1>Store Temperature Withstanding Score</h1>
+    <p class="subtitle">Product freshness resilience across store aisle positions, powered by FortyGuard environmental data</p>
+</header>
+
+<main>
+    <!-- ============ Filters ============ -->
+    <section class="panel filters">
+        <div class="field">
+            <label for="apiKeyInput">FortyGuard API Key</label>
+            <input id="apiKeyInput" type="password" placeholder="Enter your FortyGuard API key" autocomplete="off">
+        </div>
+        <div class="field">
+            <label for="storeSelect">Store</label>
+            <select id="storeSelect"></select>
+        </div>
+        <div class="field">
+            <label for="categorySelect">Product Category</label>
+            <select id="categorySelect">
+                <option value="">All categories</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="productSearch">Product Search</label>
+            <input id="productSearch" type="search" placeholder="Search product name...">
+        </div>
+        <div class="field field-action">
+            <label>&nbsp;</label>
+            <button id="syncApiBtn" class="btn">Sync real FortyGuard data for this store</button>
+        </div>
+        <div class="field sync-status">
+            <span id="syncStatus"></span>
+        </div>
+    </section>
+
+    <!-- ============ KPI cards ============ -->
+    <section class="kpi-row">
+        <div class="kpi-card">
+            <div class="kpi-value" id="kpiStoreScore">--</div>
+            <div class="kpi-label">Store Withstanding Score (days, summed)</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" id="kpiProductCount">--</div>
+            <div class="kpi-label">Products in this Store</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" id="kpiAtRisk">--</div>
+            <div class="kpi-label">Products at Risk (&lt; 2 days remaining)</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" id="kpiAvgTemp">--</div>
+            <div class="kpi-label">Today's Ambient Temp (&deg;C)</div>
+        </div>
+    </section>
+
+    <!-- ============ Charts ============ -->
+    <section class="panel charts-row">
+        <div class="chart-box">
+            <h2>Store Temperature Trend (last 15 &amp; next 10 days)</h2>
+            <canvas id="tempTrendChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <h2>Product Withstanding Days (this store)</h2>
+            <canvas id="withstandChart"></canvas>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Top / Bottom Stores by Withstanding Score</h2>
+        <p class="hint">Computed using simulated environmental data for speed; use "Sync real FortyGuard data" above for a live reading on the selected store.</p>
+        <canvas id="storeLeaderboardChart"></canvas>
+    </section>
+
+    <!-- ============ Aisle visualization ============ -->
+    <section class="panel">
+        <h2>Aisle Position Heatmap (selected store)</h2>
+        <p class="hint">Each grid is one shelf level (Z). Cell color = effective temperature today. Product codes shown where placed.</p>
+        <div id="aisleGrids"></div>
+    </section>
+
+    <!-- ============ 3D / 4D Aisle visualization ============ -->
+    <section class="panel">
+        <h2>3D Aisle View (real placements, neighbor influence &amp; temperature)</h2>
+        <p class="hint">Drag to rotate, scroll to zoom. Solid cubes are occupied positions; faint cubes are empty. Click a product cube to inspect it and highlight its neighbors. Use the day slider (the 4th dimension) to scrub through the last 15 and next 10 days.</p>
+        <div class="aisle3d-controls">
+            <label for="aisle3dDateSlider">Day:</label>
+            <input type="range" id="aisle3dDateSlider" min="0" max="24" value="15">
+            <span id="aisle3dDateLabel" class="aisle3d-date-label"></span>
+        </div>
+        <div id="aisle3dContainer"></div>
+        <div class="legend-bar">
+            <span>-20&deg;C</span>
+            <div class="legend-gradient"></div>
+            <span>35&deg;C</span>
+        </div>
+        <div id="aisle3dInfo" class="cell-info">
+            <p class="hint">Click an occupied cell (solid cube) to inspect a product and its neighbors.</p>
+        </div>
+    </section>
+
+    <!-- ============ Product table + placement editor ============ -->
+    <section class="panel">
+        <h2>Product Placements</h2>
+        <table id="productTable">
+            <thead>
+                <tr>
+                    <th>Product</th><th>Category</th><th>Price</th><th>Ideal Temp (&deg;C)</th>
+                    <th>Position (x,y,z)</th><th>Withstand Days</th><th>Status</th><th>Reposition</th>
+                </tr>
+            </thead>
+            <tbody id="productTableBody"></tbody>
+        </table>
+    </section>
+
+    <!-- ============ Suggestions ============ -->
+    <section class="panel">
+        <h2>Future Placement Suggestions</h2>
+        <div class="filters">
+            <div class="field">
+                <label for="suggestProduct">Product</label>
+                <select id="suggestProduct"></select>
+            </div>
+            <div class="field field-action">
+                <label>&nbsp;</label>
+                <button id="suggestBtn" class="btn">Get Suggestions</button>
+            </div>
+        </div>
+        <div id="suggestionResults"></div>
+    </section>
+</main>
+
+<footer>
+    <p>Prototype dashboard &mdash; all product/store data is mocked for demonstration. See <a href="README.md">README.md</a> for architecture &amp; scoring model details.</p>
+</footer>
+
+<script src="js/utils.js"></script>
+<script src="js/mockData.js"></script>
+<script src="js/fortyguardApi.js"></script>
+<script src="js/scoring.js"></script>
+<script src="js/aisle3d.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
+
